@@ -20,3 +20,39 @@ gpg --output about_<name>_solution.gpg --encrypt --armor --recipient mbtamuli@gm
 ```
 gpg --output about_<name>.go --decrypt about_<name>_solution.gpg
 ```
+
+## Bash fu
+
+Since I love bash and am lazy enough to not want to repeat uninteresting stuff
+, here are a few points related to solving these koans.
+
+1. I was having to run `go test` every time I made the changes, so I made the
+   command run every time I saved the file
+
+```bash
+git clone https://github.com/mbtamuli/go-koans/ && cd $_
+while true; do
+  inotifywait -qe modify,create,delete -r $PWD -o /dev/null &&\
+  clear && \
+  docker run --rm -ti -v "$PWD":/go/src/ -w /go/src/ golang:1.11-alpine go test
+done
+```
+
+2. Trying to access the solution or encrypting the solution, you'll have to
+   run the encrypt or the decrypt steps for each and every file, but not if
+   you do this
+
+```bash
+# Encrypt
+for file in ./*.go; do
+ if [[ $file != *"setup_koans_test"* ]] && gpg --output "${file%%.go}_solution.gpg" --encrypt --armor --recipient mbtamuli@gmail.com "$file"
+done
+```
+
+```bash
+# Decrypt
+for file in ./*.gpg; do
+ gpg --batch --yes --output "${file%%_solution.gpg}.go" --decrypt "$file"
+done
+```
+
